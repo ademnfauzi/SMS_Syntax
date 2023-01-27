@@ -1,3 +1,3 @@
-# ICONS
+# SMS SYNTAX
 
-Test Automation Script for ICONS application
+Test Automation Script for SMS SYNTAX application
