@@ -1,0 +1,26 @@
+﻿Sub Open_Notepad
+	If Not Window("Notepad").Exist(10) Then
+			wait 2
+			systemutil.Run "notepad.exe"
+			wait 2
+			Window("Notepad").Click
+		else
+			Call Close_Notepad()
+			wait 2
+			systemutil.Run "notepad.exe"
+			wait 2
+			Window("Notepad").Click
+	End If
+End Sub
+
+Sub Close_Notepad
+	Set objkey = CreateObject("WScript.Shell")
+	If Window("Notepad").Exist(10) Then
+		Window("Notepad").Close
+		wait 3
+		objkey.SendKeys "{RIGHT}"
+		wait 1
+		objkey.SendKeys "{ENTER}"
+		wait 2
+	End If
+End Sub

@@ -1,0 +1,11 @@
+﻿<Properties>
+  <WatchEntry0 value="Username" />
+  <WatchEntry1 value="Password" />
+  <WatchEntry2 value="Base64Encode" />
+  <WatchEntry3 value="tkn" />
+  <WatchEntry4 value="tkn" />
+  <WatchEntry5 value="Base64Encode" />
+  <WatchEntry6 value="Base64Encode(Username &amp; &quot;:&quot; &amp; Password)" />
+  <WatchEntry7 value="winHttp.SetRequestHeader(&quot;Authorization&quot;, &quot;Basic &quot; &amp; tkn)" />
+  <WatchEntry8 value="Call winHttp.SetRequestHeader(&quot;Authorization&quot;, &quot;Basic &quot; &amp; tkn)" />
+</Properties>

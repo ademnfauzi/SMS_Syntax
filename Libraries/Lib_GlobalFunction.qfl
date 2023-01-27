@@ -1,0 +1,179 @@
+﻿	Dim AccountNumber
+	Dim JLN_Number
+	Dim Fm_Acc_Number
+	Dim To_Acc_Number
+	Dim Fm_Acc_Number_Or_To_Acc_Number
+	Dim Promo_Code_Text
+	Dim dtCIF
+	
+	Dim dtTempTC
+	Dim dtCaptureName, dtProjectName
+	Dim varAddImages 
+	
+	Dim projectFdate, projectF, PathFolder1
+	Dim dtFolder
+	Dim dtFolderUFT
+	Dim objSysInfo
+	Dim PathFolder
+	
+	Dim TransactionID, DateHour
+	Dim objFSO, fso
+	Dim	objFolder
+	Dim objShell
+	Dim oSnag
+	Dim ImageName
+	Dim fileName
+	Dim fullPath
+	Dim oBrowser
+	
+	Dim imageTitle
+	Dim imageDesc
+
+	Dim deviceReplay
+	Dim LEFT_MOUSE_BUTTON
+
+varAddImages = ""
+
+REM =================== Capture ini bisa digunakan tanpa ada Snagit, 
+REM =================== hasilnya capture image sehalaman yang lagi dibuka, tanpa taskbar
+Function CaptureImageUFTV2(byval page, stepName, imageDescription, compatibilityMode, stepStatus)
+	Dim fso, filesys, PathFile
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	fileName = Environment("ActionName") & "_" & GetDateTime()
+	imagePath = objFolder & "\" & fileName & ".png"
+	
+	if fso.FileExists(imagePath) then
+		imagePath=objFolder & "\" & fileName &"_"& countImage &".png"
+		page.CaptureBitmap imagePath
+		countImage=countImage+1
+	else
+		page.CaptureBitmap imagePath
+	end if
+	
+	Do until fso.FileExists(imagePath)
+		wait 0, 500
+	loop
+	Call react.AddImage(stepName, imageDescription, imagePath, compatibilityMode, stepStatus)
+
+	Set filesys = CreateObject("Scripting.FileSystemObject")
+	PathFile = "C:" & ImagePath
+	
+	If filesys.FileExists (PathFile) Then
+	    filesys.DeleteFile PathFile
+	End If
+End Function
+
+REM ===================== Function untuk create New Folder
+Function NewFolder(FolderName)
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	on error resume next
+	objFSO.CreateFolder(FolderName)
+End Function
+
+REM ===================== Function untuk Delete Folder
+Function DeleteFolder(Path)
+	If objFSO.FolderExists(Path) Then
+	On error resume next
+		objFSO.DeleteFolder(Path)
+	End If
+End Function
+
+REM Declare Date Functions
+REM =================================
+Function fnGetCompleteDateTime()
+	Dim t, temp, iMilliseconds, _
+		iSeconds, iMinutes, iHours, _
+		iYear, iMonth, iDay
+		
+	t = Timer
+
+	' Int() behaves exactly like Floor() function, i.e. it returns the biggest integer lower than function's argument
+	temp = Int(t)
+
+	iMilliseconds = Int((t-temp) * 1000)
+
+	iYear = Year(Now)
+	iMonth = Month(Now)
+	iDay = Day(Now)
+	iSeconds = temp mod 60
+	temp    = Int(temp/60)
+	iMinutes = temp mod 60
+	iHours   = Int(temp/60)
+
+	' Let's format it
+	strTime = 			String(4 - Len(iYear), "0") & iYear & "-"
+	strTime = strTime & String(2 - Len(iMonth), "0") & iMonth & "-"
+	strTime = strTime & String(2 - Len(iDay), "0") & iDay & " "
+	strTime = strTime & String(2 - Len(iHours), "0") & iHours & ":"
+	strTime = strTime & String(2 - Len(iMinutes), "0") & iMinutes & ":"
+	strTime = strTime & String(2 - Len(iSeconds), "0") & iSeconds & "."
+	strTime = strTime & String(3 - Len(iMilliseconds), "0") & iMilliseconds
+
+	fnGetCompleteDateTime = strTime
+End Function
+
+Function fnGetDate()
+	fnGetDate = Split(fnGetCompleteDateTime(), " ")(0)
+End Function
+
+Function fnGetTime()
+	fnGetTime = Split(fnGetCompleteDateTime(), " ")(1)
+End Function
+
+REM ===================== Sub untuk membuka browser dengan parameter pertama browser (lihat di taskmanager terkait browser apa yg digunakan, cth: internet explorer = iexplore.exe), parameter kedua url tujuan
+Function fnOpenBrowser(Openbrowser, url)
+	oBrowser = LCase(Openbrowser)
+	SystemUtil.CloseProcessByName oBrowser &".exe"
+	SystemUtil.Run oBrowser, url, , , 3
+	wait 2
+End Function
+
+REM ====================== Function untuk close browser
+REM ====================== Function ini tidak akan berjalan jika tidak ada OpenBrowser di awal action!!!!!!
+Function CloseBrowser()
+	SystemUtil.CloseProcessByName oBrowser &".exe"
+	wait 2	
+End Function
+
+
+REM =============*******=========== Function untuk get DateTime ==================*******==========================
+Function GetDateTime()
+	Dim sYear
+	Dim sMonth
+	Dim sDay
+	Dim sHour
+	Dim sMinute
+	Dim sSecond
+	
+	sYear = Cstr(Year(Now))
+	
+	If Len(CStr(Month(Now))) < 2 Then
+		sMonth = "0" & Month(Now)
+	Else
+		sMonth = Month(Now)
+	End If
+	If Len(CStr(Day(Now))) < 2 Then
+		sDay = "0" & Day(Now)
+	Else
+		sDay = Day(Now)
+	End If
+	If Len(CStr(Hour(Now))) < 2 Then
+		sHour = "0" & Hour(Now)
+	Else
+		sHour = Hour(Now)
+	End If
+	If Len(CStr(Minute(Now))) < 2 Then
+		sMinute = "0" & Minute(Now)
+	Else
+		sMinute = Minute(Now)
+	End If
+	If Len(CStr(Second(Now))) < 2 Then
+		sSecond = "0" & Second(Now)
+	Else
+		sSecond = Second(Now)
+	End If
+	
+	GetDateTime = sYear & "-" & sMonth & "-" & sDay & "_" & sHour & "-" & sMinute & "-" & sSecond
+	DateHour = sYear & sMonth & sDay & "_" & sHour & "." & sMinute
+	Exit Function
+End Function

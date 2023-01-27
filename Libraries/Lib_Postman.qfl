@@ -1,0 +1,197 @@
+﻿Set objkey = CreateObject("WScript.Shell")
+Sub DA_Login_Postman
+	Dim dtOpenBrowser, dtURL
+	
+	dtOpenBrowser	= DataTable.Value ("BROWSER", "SMS")
+	dtURL			= DataTable.Value ("POSTMAN_URL", "SMS")
+	
+	Call fnOpenBrowser(dtOpenBrowser, dtURL)
+	
+	wait 10
+'	objkey.SendKeys "{F6}"
+'	objkey.SendKeys "{ENTER}"
+	objkey.SendKeys "{F5}"
+	wait 1
+	
+	If Browser("Postman").Page("Postman - Account Chooser").WebElement("Continue using Postman").Exist(3) Then
+		Call CaptureImageUFTV2(Browser("Postman").Page("Postman - Account Chooser"), "Membuka Halaman Postman", "Melanjutkan Menggunakan Postman Yang Telah Login Sebelumnya", compatibilityMode.Desktop, ReportStatus.Passed)
+		wait 1
+		x = 624
+		y = 288
+		Call Click_CoordinateV2(x,y,1366,768)
+		Set devices = CreateObject("Mercury.DeviceReplay")
+		devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+		wait 1
+		objkey.SendKeys "{TAB}"
+		wait 1
+		objkey.SendKeys "{ENTER}"
+		wait 3
+		Do Until Browser("Postman").Page("Postman API Platform").WebElement("Create New Box").Exist
+		Loop
+		wait 3
+		Call CaptureImageUFTV2(Browser("Postman").Page("Postman - Account Chooser"), "Berhasil Memasuki Halaman Beranda Postman", "", compatibilityMode.Desktop, ReportStatus.Passed)	
+	ElseIf Browser("Postman - Account Chooser").Page("Postman - Sign In").WebEdit("Email / Username").Exist Then
+		email				= DataTable.Value("EMAIL_POSTMAN", dtLocalSheet)
+		password				= DataTable.Value("PASSWORD_POSTMAN", dtLocalSheet)
+		wait 1
+		Browser("Postman - Account Chooser").Page("Postman - Sign In").WebElement("Sign With Google Account").Click
+		wait 3
+		Do Until Browser("Postman - Account Chooser").Page("Login - Akun Google").WebElement("Use Another Account").Exist
+		Loop
+		If Browser("Postman - Account Chooser").Page("Login - Akun Google").WebElement("Use Another Account").Exist Then
+			wait 1
+			Browser("Postman - Account Chooser").Page("Login - Akun Google").WebElement("Use Another Account").Click
+			wait 1
+			If Browser("Postman - Account Chooser").Page("Login - Akun Google").WebEdit("Email Google").Exist Then
+				Browser("Postman - Account Chooser").Page("Login - Akun Google").WebEdit("Email Google").Set email
+				wait 1
+				Browser("Postman - Account Chooser").Page("Login - Akun Google").WebButton("Button Next").Click
+				wait 1
+				If Browser("Postman - Account Chooser").Page("Login - Akun Google").WebEdit("Password Google").Exist Then
+					Browser("Postman - Account Chooser").Page("Login - Akun Google").WebEdit("Password Google").Set password
+					wait 1
+					Browser("Postman - Account Chooser").Page("Login - Akun Google").WebButton("Button Next").Click
+					wait 3
+					Do Until Browser("Postman").Page("Postman API Platform").WebElement("Create New Box").Exist
+					Loop
+					If Browser("Postman").Page("Postman API Platform").WebElement("Create New Box").Exist Then
+						wait 1
+						Call CaptureImageUFTV2(Browser("Postman").Page("Postman - Account Chooser"), "Berhasil Memasuki Halaman Beranda Postman", "", compatibilityMode.Desktop, ReportStatus.Passed)	
+					Else
+						Call CaptureImageUFTV2(Desktop, "Gagal Melakukan Set Password Google", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+						wait 2
+						ExitActionIteration()
+					End If
+				Else
+					Call CaptureImageUFTV2(Desktop, "Gagal Melakukan Set Email Google", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+					wait 2
+					ExitActionIteration()
+				End If
+			Else
+				Call CaptureImageUFTV2(Desktop, "Gagal Melakukan Set Email Google", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+				wait 2
+				ExitActionIteration()
+			End If
+		Else
+			Call CaptureImageUFTV2(Desktop, "Gagal Melakukan Sign In Google", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+			wait 2
+			ExitActionIteration()
+		End If
+	Else
+		Call CaptureImageUFTV2(Desktop, "General Error", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+		wait 2
+		ExitActionIteration()
+	End If
+	
+	Call New_Test_Postman()
+End Sub
+
+Sub Request_Postman
+	wait 1
+	Call New_Tab_Request()
+
+	type_body				= DataTable.Value("TYPE_BODY", dtLocalSheet)
+	type_method				= DataTable.Value("TYPE_METHOD", dtLocalSheet)
+	body_json				= DataTable.Value("BODY_JSON", dtLocalSheet)
+	url_request				= DataTable.Value("URL_REQUEST", dtLocalSheet)
+	
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebEdit("Request URL").Set url_request
+	wait 1
+'	Browser("Postman").Page("Postman - Tab Request").WebElement("Arrow Drop Down - Method").Click
+'	wait 1
+'	Browser("Postman").Page("Postman - Tab Request").WebElement("POST").SetTOProperty "innertext",type_method
+'	Browser("Postman").Page("Postman - Tab Request").WebElement("POST").Click
+	Browser("Postman").Page("Postman - Tab Request").WebEdit("Method").Set type_method
+
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebElement("Body").Click
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebElement("Raw - Body").Click
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebElement("Text - Raw Body").Click
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebElement("JSON").SetTOProperty "innertext",type_body
+	Browser("Postman").Page("Postman - Tab Request").WebElement("JSON").Click
+	wait 1
+	Browser("Postman").Page("Postman - Tab Request").WebElement("Input Body").Click
+	wait 1
+	objkey.SendKeys body_json
+	wait 3
+	Call CaptureImageUFTV2(Browser("Postman").Page("Postman - Tab Request"), "Melakukan Pengisian Request", "", compatibilityMode.Desktop, ReportStatus.Done)
+	wait 3
+	Browser("Postman").Page("Postman - Tab Request").WebElement("Button Send").Click
+End Sub
+
+Sub New_Test_Postman
+	wait 1
+	Browser("Postman").Page("Postman API Platform").WebElement("Create New Link").Click
+	objkey.SendKeys "{ENTER}"
+	wait 1
+	Do Until Browser("Postman").Page("Postman").WebElement("New Tab Postman").Exist
+	Loop
+	wait 5
+	If Browser("Postman").Page("Postman").WebElement("Pop Up - Create New").Exist Then
+		wait 1
+		Browser("Postman").Page("Postman").WebElement("Close Pop Up").Click
+	End If
+End Sub
+
+Sub New_Tab_Request
+	wait 1
+	Browser("Postman").Page("Postman").WebElement("New Tab Postman").Click
+	wait 1
+	If Browser("Postman").Page("Postman - Tab Request").WebEdit("Request URL").Exist(3) Then
+		wait 1
+		Call CaptureImageUFTV2(Browser("Postman").Page("Postman"), "Membuka Tab Baru Untuk Melakukan Request", "", compatibilityMode.Desktop, ReportStatus.Passed)
+	Else
+		Call CaptureImageUFTV2(Desktop, "General Error", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+		wait 2
+		ExitActionIteration()
+	End If
+End Sub
+
+Sub DA_Logout_Postman
+	wait 1
+	Browser("Postman - Account Chooser").Page("Postman API Platform").WebElement("Profile Icon").Click
+	wait 1
+	Browser("Postman - Account Chooser").Page("Postman API Platform").WebElement("Sign Out").Click
+	wait 1
+	Do Until Browser("Postman - Account Chooser").Page("Postman API Platform").WebElement("Sign Out - Pop Up").Exist
+	Loop
+	Browser("Postman - Account Chooser").Page("Postman API Platform").WebElement("Sign Out - Pop Up").Click
+	wait 5
+	Do Until Browser("Postman - Account Chooser").Page("Postman - Sign In").WebEdit("Email / Username").Exist
+	Loop
+	If Browser("Postman - Account Chooser").Page("Postman - Sign In").WebEdit("Email / Username").Exist Then
+		Call CaptureImageUFTV2(Browser("Postman - Account Chooser").Page("Postman - Sign In"), "Berhasil Melakukan Logout", "", compatibilityMode.Desktop, ReportStatus.Passed)
+	Else
+		Call CaptureImageUFTV2(Browser("Postman - Account Chooser").Page("Postman - Sign In"), "Tidak Berhasil Melakukan Logout", "", compatibilityMode.Desktop, ReportStatus.Failed)
+	End If
+End Sub
+
+Sub Click_Coordinate(xPercent,yPercent)
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	xTotal = Window("SS_Full_Screen").GetROProperty("width")
+	yTotal = Window("SS_Full_Screen").GetROProperty("height")
+
+	x = round(xPercent/100 * xTotal)
+	y = round(yPercent/100 * yTotal)
+	
+	devices.MouseMove x , y
+'	devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+End Sub
+
+Sub Click_CoordinateV2(Coor_x,Coor_y,Screen_x,Screen_y)
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	xNewTotal = Window("SS_Full_Screen").GetROProperty("width")
+	yNewTotal = Window("SS_Full_Screen").GetROProperty("height")
+
+	x = round(Coor_x * xNewTotal / Screen_x)
+	y = round(Coor_y * yNewTotal / Screen_y)
+	
+	devices.MouseMove x , y
+'	devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+End Sub
+
+

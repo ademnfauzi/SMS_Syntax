@@ -1,0 +1,248 @@
+﻿Dim SetTerminalID, noJurnal, dtNoTeller
+SetTerminalID = "243"
+MaxTerminalID = "999"
+
+Sub DA_Login_ICONS
+	Dim dtOpenBrowser, dtURL
+	dtOpenBrowser	= DataTable.Value ("ICONS_BROWSER", "ICONS")
+	dtURL			= DataTable.Value ("ICONS_URL", "ICONS")
+	
+	If Browser("ICONS 64 Alternity").Exist Then
+		Browser("ICONS 64 Alternity").CloseAllTabs
+		wait 10
+	End If
+	
+	Call fnOpenBrowser(dtOpenBrowser, dtURL)
+	
+'	If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebButton("FR_icons_SignOn").Exist(60) Then
+'		Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebButton("FR_icons_SignOn").Click
+'	End If
+'	
+'	If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_NoTeller").Exist(15) Then
+'		Call spIcons_InputCredential(dtNoTeller, dtPassword, dtNoBranch)
+'	End If
+
+	If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebButton("DA_icons_btnLoginProses").Exist(15) Then
+		Call Input_Login()
+	End If
+
+	If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("SF_icons_ApplicationNotActive").Exist(2) Then
+		Browser("ICONS 64 Alternity").CloseAllTabs
+		wait 5
+		Call fnOpenBrowser(dtOpenBrowser, dtURL)
+		wait 2
+		Call Input_Login()
+	End If
+	
+	If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("DA_icons_TerminalNotAvailable").Exist(5) or Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("DA_icons_USER SIGN-ON DIKOMPUTER LAIN").Exist(5) or Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("FR_icons_SocketExceptionError").Exist(5) or Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("KV_icons_Transaction_Timeout_error").Exist(5) or Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("SF_icons_NoMessageToDisplay").Exist(5) Then
+		Do 
+			SetTerminalID = SetTerminalID + 1
+			If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_NoTeller").GetROProperty("disable") or Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_NoTeller").GetROProperty("disable") Then
+				msgbox "dah masuk login tapi error"
+			else
+				Call Input_login()	
+			End If
+		Loop until Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebElement("KODE KLN").Exist(3) Or SetTerminalID > 872
+		wait 3
+		If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebElement("DA_USER SIGN-ON").Exist(5) AND SetTerminalID < 872  Then
+			'minus 1 karena set terminal id nya kacau, klo nambah terminal id jadi kacau
+			wait 2
+			Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Berhasil Login Ke Icons", "Dengan No Terminal ID : "& SetTerminalID, compatibilityMode.Desktop, ReportStatus.Passed)
+			wait 2
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebButton("DA_icons_Screen45_Tutup").Click
+		Else
+			Call CaptureImageUFTV2(Desktop, "General Error", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+			ExitActionIteration()
+'			ExitAction()
+		End If
+	Else
+		If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebElement("DA_USER SIGN-ON").Exist(5) Then
+		'	msgbox "not loop : " & SetTerminalID
+			wait 2
+			Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Berhasil Login Ke Icons", "Dengan No Terminal ID : "& SetTerminalID, compatibilityMode.Desktop, ReportStatus.Passed)
+			wait 2
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebButton("DA_icons_Screen45_Tutup").Click
+			wait 2
+'		ElseIf Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("SF_icons_ApplicationNotActive").Exist(2) Then
+'			Call Input_Login()
+		ElseIf not Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebElement("DA_USER SIGN-ON").Exist(5) Then	
+		wait 2
+			Call CaptureImageUFTV2(Desktop, "General Error", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+			wait 2
+			ExitActionIteration()
+'			ExitAction()
+		End If
+	End If
+End Sub
+
+Sub DA_Logout_ICONS
+	do
+	Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebButton("DA_icons_SignOff").Click
+	wait 3
+	Loop until Browser("ICONS 64 Alternity").Dialog("Message from webpage").Exist(2)
+	
+	If Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Exist(10) Then
+		Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 1", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+		Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Click
+		
+		If Browser("ICONS 64 Alternity").Dialog("Windows Internet Explorer").WinButton("FR_icons_Logout_Yes").Exist(10) Then
+			Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 2", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+			Browser("ICONS 64 Alternity").Dialog("Windows Internet Explorer").WinButton("FR_icons_Logout_Yes").Click
+			
+			If Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Exist(5) Then
+				Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 3", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+				Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Click
+			End If
+		End If
+	End If
+End Sub
+
+Sub DA_Logout_ICONS_No_SS
+	do
+	Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebButton("DA_icons_SignOff").Click
+	wait 3
+	Loop until Browser("ICONS 64 Alternity").Dialog("Message from webpage").Exist(2)
+	
+	If Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Exist(10) Then
+'		Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 1", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+		Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Click
+		
+		If Browser("ICONS 64 Alternity").Dialog("Windows Internet Explorer").WinButton("FR_icons_Logout_Yes").Exist(10) Then
+'			Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 2", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+			Browser("ICONS 64 Alternity").Dialog("Windows Internet Explorer").WinButton("FR_icons_Logout_Yes").Click
+			
+			If Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Exist(5) Then
+'				Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Logout Icons Confirm 3", " ", compatibilityMode.Desktop, ReportStatus.Passed)
+				Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Click
+			End If
+		End If
+	End If
+End Sub
+
+Sub GoTo_ScreenNumber
+	wait 5
+	Dim dtScreenNumber 
+	Set objkey = CreateObject("WScript.Shell")
+	dtScreenNumber = DataTable.Value("SCREEN",dtlocalsheet)
+	wait 1
+	Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebEdit("SceenNumber").set dtScreenNumber
+	wait 2
+	Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Toolbar").WebEdit("SceenNumber").Click
+	wait 2
+	objkey.SendKeys "{ENTER}"
+	wait 2
+	If Dialog("Message from webpage").Static("Warning Logo").Exist(3) Then
+		Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "User Cannot Find Screen " & dtScreenNumber, " ", compatibilityMode.Desktop, ReportStatus.Failed)
+		wait 2
+		Dialog("Message from webpage").Static("Warning Logo").Click
+		wait 1
+		objkey.SendKeys "{ENTER}"
+		Call DA_Logout_ICONS()
+		ExitAction()
+	else
+		Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity"), "Enter To Screen " & dtScreenNumber, " ", compatibilityMode.Desktop, ReportStatus.Passed)
+	End If
+	
+	wait 2
+End Sub
+
+Sub Input_Login()
+	dtNoTeller	= DataTable.Value("ICONS_NO_TELLER", "ICONS")
+	dtPassword	= DataTable.Value("ICONS_PASSWORD", "ICONS")
+	dtNoBranch	= DataTable.Value("ICONS_NO_BRANCH", "ICONS")
+	
+'	temp_NoTeller = Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_NoTeller").GetROProperty("class")
+	
+'	If temp_NoTeller = "fieldinput_mandatory" Then
+	
+		Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_NoTeller").Set dtNoTeller
+			wait 1
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_password").Set dtPassword
+			wait 1
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_branch").Set dtNoBranch
+			wait 1
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebEdit("DA_icons_terminalId").Set SetTerminalID
+			wait 2
+			Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("MainScreen").WebButton("DA_icons_btnLoginProses").Click
+			If Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Exist(5) Then
+				Browser("ICONS 64 Alternity").Dialog("Message from webpage").WinButton("DA_icons_OK").Click
+			End If
+			
+			wait 5
+			
+			If Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("DA_icons_USER SIGN-ON DIKOMPUTER LAIN").Exist(5) Then
+				Call CaptureImageUFTV2(Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar"), "User Alrady Login, Need To Logout Using Bitvise", " ", compatibilityMode.Desktop, ReportStatus.Done)
+				Call Reset_Teller()
+			End If
+			
+'	End If
+End Sub
+
+Sub Reset_Teller()
+	dtNoTeller	= DataTable.Value("ICONS_NO_TELLER", "ICONS")
+	
+	Call DA_Login_Bitvise("FNSONLAD")
+	Call Open_Terminal_Bitvise()
+	Call RUN_Command_Bitvise("RESET_TELLER")
+	Call Close_Terminal_Bitvise()
+	Call DA_Logout_Bitvise()
+End Sub
+
+Sub RefreshPage
+	set objkey = CreateObject("WScript.Shell")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+
+	
+	x = Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("greyblock").getRoProperty("abs_x") + 150
+	y = Browser("ICONS 64 Alternity").Page("ICONS 64 Alternity").Frame("Statusbar").WebElement("greyblock").getRoProperty("abs_y") - 100
+	devices.MouseMove x , y
+	devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+	objkey.SendKeys "+{F10}"
+	wait 3
+	objkey.SendKeys ("r")
+	wait 5
+	
+End Sub
+
+function GetExcelValue(IndexCol,IndexRow,FileName,SheetName)
+	Dim objSysInfo, Path_Env, LibFunction
+	Set objSysInfo 		= Createobject("Wscript.Network")	
+	Path_Env = Environment.Value("Path_Folder")
+	LibExcel = Path_Env & "Excel\"
+	Set objExcel = CreateObject("Excel.Application")
+    objExcel.DisplayAlerts = False
+    Set objWorkbook = objExcel.Workbooks.Open (LibExcel & FileName )
+    Set objSheet  = objWorkbook.Worksheets(SheetName)   'Or pass sheet number integer value 1,2,etc
+    GetExcelValue = objSheet.Cells(IndexCol, IndexRow).value
+    objWorkbook.SaveAs (LibExcel & FileName)
+    objWorkbook.Close
+    Set objSheet  = Nothing
+    Set objWorkbook = Nothing
+    Set objExcel = Nothing
+End function
+
+Sub Click_Coordinate(xPercent,yPercent)
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	xTotal = Window("SS_Full_Screen").GetROProperty("width")
+	yTotal = Window("SS_Full_Screen").GetROProperty("height")
+
+	x = round(xPercent/100 * xTotal)
+	y = round(yPercent/100 * yTotal)
+	
+	devices.MouseMove x , y
+'	devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+End Sub
+
+Sub Click_CoordinateV2(Coor_x,Coor_y,Screen_x,Screen_y)
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	xNewTotal = Window("SS_Full_Screen").GetROProperty("width")
+	yNewTotal = Window("SS_Full_Screen").GetROProperty("height")
+
+	x = round(Coor_x * xNewTotal / Screen_x)
+	y = round(Coor_y * yNewTotal / Screen_y)
+	
+	devices.MouseMove x , y
+'	devices.MouseClick x , y , LEFT_MOUSE_BUTTON
+End Sub
+
+

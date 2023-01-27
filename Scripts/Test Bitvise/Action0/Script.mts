@@ -1,0 +1,1 @@
+﻿RunAction "Testing Bitvise", allIterations

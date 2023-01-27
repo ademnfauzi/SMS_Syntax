@@ -1,0 +1,693 @@
+﻿Dim JLN_Number
+
+Sub RUN_Command_Bitvise(Command)
+	wait 10
+	Dim dtCommand
+	msisdn = DataTable.Value("MSISDN", dtLocalSheet)
+	
+	If Window("Bitvise xterm").Exist Then
+		If ucase(command) = "SMS1" Then
+			dtCommand	= "tailsms1"
+		ElseIf ucase(command)  = "SMS2" Then
+			dtCommand = "tailsms2"
+		else
+			dtCommand	= DataTable.Value("COMMAND_" & Command, dtlocalsheet)	
+		End If
+		
+		Set objkey = CreateObject("WScript.Shell")
+		Set devices = CreateObject("Mercury.DeviceReplay")
+		
+		Window("Bitvise xterm").Type dtCommand
+		wait 1
+		objkey.SendKeys "{ENTER}"
+		wait 5
+		
+		If ucase(command) = "SMS1" Then
+			wait 1
+			Call CaptureImageUFTV2(Window("Bitvise xterm"), "Hasil Log Dari Perintah " & UCase(dtCommand)," ", compatibilityMode.Desktop, ReportStatus.Passed)	
+			wait 1
+			sTemp_result = Window("Bitvise xterm").GetVisibleText
+	'		print sTemp_result
+			Number_start = instr(1,ucase(sTemp_result),msisdn)
+'			Number_start = instr(1,ucase(sTemp_result),"6281283879291")
+	'		msgbox(Number_start)
+	'		Number_start2 = instr(Number_start, ucase(sTemp_result),"begin")
+	'		msgbox(Number_start2)
+			
+			If Number_start = 0 Then
+				Call CaptureImageUFTV2(Window("Bitvise xterm"), "Tidak Ditemukan Log Dari Perintah " & UCase(dtCommand) & " Untuk MSISDN " & msisdn," ", compatibilityMode.Desktop, ReportStatus.Failed)	
+				'msgbox "Message Is Empty"
+			Else
+				Number_Select_Text = mid(sTemp_result,Number_start,21)
+		'		msgbox(Number_Select_Text)
+				
+				Set objRegEx = CreateObject("VBScript.RegExp")
+				objRegEx.Global = True   
+				objRegEx.Pattern = "[^0-9]"
+				strSearchString = Number_Select_Text
+				strSearchString = objRegEx.Replace(strSearchString, "")
+				'msgbox(strSearchString)
+			End If
+			
+			wait 3
+			objkey.SendKeys "^c"
+			wait 3
+			Window("Bitvise xterm").Type "clear"
+			wait 1
+			objkey.SendKeys "{ENTER}"
+		ElseIf  ucase(command) = "SMS2" Then
+			wait 1
+			Call CaptureImageUFTV2(Window("Bitvise xterm"), "Hasil Log Dari Perintah " & UCase(dtCommand)," ", compatibilityMode.Desktop, ReportStatus.Passed)	
+			wait 1
+			sTemp_result = Window("Bitvise xterm").GetVisibleText
+			print sTemp_result
+			Number_start = instr(1,ucase(sTemp_result),msisdn)
+			'msgbox(Number_start)
+	'		Number_start2 = instr(Number_start, ucase(sTemp_result),"begin")
+	'		msgbox(Number_start2)
+			
+			If Number_start = 0 Then
+				Call CaptureImageUFTV2(Window("Bitvise xterm"), "Tidak Ditemukan Log Dari Perintah " & UCase(dtCommand) & " Untuk MSISDN " & msisdn," ", compatibilityMode.Desktop, ReportStatus.Failed)	
+				'msgbox "Message Is Empty"
+			Else
+				Number_Select_Text = mid(sTemp_result,Number_start,21)
+		'		msgbox(Number_Select_Text)
+				
+				Set objRegEx = CreateObject("VBScript.RegExp")
+				objRegEx.Global = True   
+				objRegEx.Pattern = "[^0-9]"
+				strSearchString = Number_Select_Text
+				strSearchString = objRegEx.Replace(strSearchString, "")
+				
+		'		msgbox(strSearchString)
+			End If
+			
+			wait 3
+			objkey.SendKeys "^c"
+			wait 3
+			Window("Bitvise xterm").Type "clear"
+			wait 1
+			objkey.SendKeys "{ENTER}"
+		else
+			Call CaptureImageUFTV2(Window("Bitvise xterm"), "Hasil Log Dari Perintah " & UCase(dtCommand)," ", compatibilityMode.Desktop, ReportStatus.Passed)	
+			wait 3
+		End If
+	Else
+		Call CaptureImageUFTV2(Desktop, "Gagal Membuka Terminal", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+		wait 2
+		ExitActionIteration()
+	End If
+	
+'	If ucase(command) = "SMS2" Then
+'		sTemp_result = Window("Bitvise xterm").GetVisibleText
+'		print sTemp_result
+'		Number_start = instr(1,ucase(sTemp_result),"MSISDN")
+''		msgbox(Number_start)
+''		Number_start2 = instr(Number_start, ucase(sTemp_result),"begin")
+''		msgbox(Number_start2)
+'		
+'		If Number_start = 0 Then
+'			msgbox "Message Is Empty"
+'		End If
+'		
+'		Number_Select_Text = mid(sTemp_result,Number_start,21)
+''		msgbox(Number_Select_Text)
+'		
+'		Set objRegEx = CreateObject("VBScript.RegExp")
+'		objRegEx.Global = True   
+'		objRegEx.Pattern = "[^0-9]"
+'		strSearchString = Number_Select_Text
+'		strSearchString = objRegEx.Replace(strSearchString, "")
+''		msgbox(strSearchString)
+'		wait 3
+'		objkey.SendKeys "^C"
+'		Window("Bitvise xterm").Type "clear"
+'		wait 1
+'		objkey.SendKeys "{ENTER}"
+'	else
+'		Call CaptureImageUFTV2(Window("Bitvise xterm"), "There is The output from command " & UCase(dtCommand)," ", compatibilityMode.Desktop, ReportStatus.Passed)	
+'	End If
+	
+End sub
+
+Sub GET_JLN_Number
+	
+	Set PasteData = CreateObject("Mercury.Clipboard")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objShell = CreateObject("WScript.Shell")
+
+	xTotal = Window("Bitvise xterm").GetROProperty("width")
+	yTotal = Window("Bitvise xterm").GetROProperty("height")
+	
+	If xTotal < 768 Then
+		xPlus = 45
+	ElseIf xTotal > 768 And xTotal < (768 * 1.5) Then
+		xPlus = 65
+	ElseIf xTotal > (768 * 1.5) And xTotal < (768 * 2) Then
+		xPlus = 85
+	ElseIf xTotal > (768 * 2) And xTotal < (768 * 2.5) Then
+		xPlus = 105
+	ElseIf xTotal > (768 * 2.5) And xTotal < (768 * 3) Then
+		xPlus = 125
+	ElseIf xTotal > (768 * 3) And xTotal < (768 * 4) Then
+		xPlus = 145
+	else
+		msgbox "Screen Resolution Way to Big "
+	End If
+	If Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	elseIf Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").getRoProperty("abs_y") + 10)
+	else
+		REM V2
+		sTemp_result = Window("Bitvise xterm").GetVisibleText
+		JNL_Number_start = instr(1,ucase(sTemp_result),"JNL")
+		
+		If JNL_Number_start = 0 Then
+			JNL_Number_start = instr(1,ucase(sTemp_result),"INI")
+		End If
+		
+		If JNL_Number_start = 0 Then
+			msgbox "JNL Number Is Empty"
+		End If
+		
+		JNL_Number_Select_Text = mid(sTemp_result,JNL_Number_start,20)
+		JNL_Number_Select_Text = Split(JNL_Number_Select_Text,"|")
+		JNL_Number_Select_Text_2 = Split(JNL_Number_Select_Text(0),"ID")
+		JNL_Number_Select_Text_3 = Split(JNL_Number_Select_Text_2(0),"+")
+
+		JNL_Number_Remove_Text_Alphabet = Replace(ucase(JNL_Number_Select_Text_3(0)),"JNL","")
+		JNL_Number_Remove_Text_Alphabet = Replace(ucase(JNL_Number_Remove_Text_Alphabet),"INI","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,":","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet," ","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,"	","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,vbCrLf,"")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,chr(10),"")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,chr(13),"")
+
+		Set objRegEx = CreateObject("VBScript.RegExp")
+		objRegEx.Global = True   
+		objRegEx.Pattern = "[^0-9]"
+		strSearchString = JNL_Number_Remove_Text_Alphabet
+		strSearchString = objRegEx.Replace(strSearchString, "")
+		
+		JLN_Number = strSearchString
+		objShell.Popup "JLN Number : " & JLN_Number , 5
+	End If
+	
+	If Work_FlagV1 Then
+		devices.MouseMove x , y
+		devices.MouseDblClick x , y , LEFT_MOUSE_BUTTON
+		wait 2
+		JLN_Number = PasteData.GetText
+		wait 2
+		PasteData.SetText ""
+		objShell.Popup "JLN Number : " & JLN_Number , 5
+	End If
+	
+End Sub
+
+Sub Close_Terminal_Bitvise()
+	Window("Bitvise xterm").Close
+End Sub
+
+Sub Open_Terminal_Bitvise()	
+'	If Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG").Exist(3) Then
+'		Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG").Click
+'	ElseIf Dialog("fnstpca@192.168.132.31:22").InsightObject("TERMINAL_IMG").Exist(3) Then
+'		Dialog("fnstpca@192.168.132.31:22").InsightObject("TERMINAL_IMG").Exist(3)
+'	else
+'		Dialog("Administrator@192.168.150.133:22").WinObject("Custom1").Click 30,218
+'	End If
+'
+'	do 
+'	Loop until Window("Bitvise xterm").Exist(2) 
+
+	Call Open_TerminalV2
+	wait 10
+	If Window("Bitvise xterm").Exist Then
+		Window("Bitvise xterm").Maximize
+	End If
+	
+	wait 3
+End Sub
+
+
+Sub GET_JLN_Number
+	
+	Set PasteData = CreateObject("Mercury.Clipboard")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objShell = CreateObject("WScript.Shell")
+
+	xTotal = Window("Bitvise xterm").GetROProperty("width")
+	yTotal = Window("Bitvise xterm").GetROProperty("height")
+	
+	If xTotal < 768 Then
+		xPlus = 45
+	ElseIf xTotal > 768 And xTotal < (768 * 1.5) Then
+		xPlus = 65
+	ElseIf xTotal > (768 * 1.5) And xTotal < (768 * 2) Then
+		xPlus = 85
+	ElseIf xTotal > (768 * 2) And xTotal < (768 * 2.5) Then
+		xPlus = 105
+	ElseIf xTotal > (768 * 2.5) And xTotal < (768 * 3) Then
+		xPlus = 125
+	ElseIf xTotal > (768 * 3) And xTotal < (768 * 4) Then
+		xPlus = 145
+	else
+		msgbox "Screen Resolution Way to Big "
+	End If
+	If Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("JLN_IMG_JLN").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	elseIf Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_3nl").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JNL_IMG_TEXT_Ini").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("JLN_IMG_TEXt_JLN :").getRoProperty("abs_y") + 10)
+	else
+		REM V2
+		sTemp_result = Window("Bitvise xterm").GetVisibleText
+		JNL_Number_start = instr(1,ucase(sTemp_result),"JNL")
+		
+		If JNL_Number_start = 0 Then
+			JNL_Number_start = instr(1,ucase(sTemp_result),"INI")
+		End If
+		
+		If JNL_Number_start = 0 Then
+			msgbox "JNL Number Is Empty"
+		End If
+		
+		JNL_Number_Select_Text = mid(sTemp_result,JNL_Number_start,20)
+		JNL_Number_Select_Text = Split(JNL_Number_Select_Text,"|")
+		JNL_Number_Select_Text_2 = Split(JNL_Number_Select_Text(0),"ID")
+		JNL_Number_Select_Text_3 = Split(JNL_Number_Select_Text_2(0),"+")
+
+		JNL_Number_Remove_Text_Alphabet = Replace(ucase(JNL_Number_Select_Text_3(0)),"JNL","")
+		JNL_Number_Remove_Text_Alphabet = Replace(ucase(JNL_Number_Remove_Text_Alphabet),"INI","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,":","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet," ","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,"	","")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,vbCrLf,"")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,chr(10),"")
+		JNL_Number_Remove_Text_Alphabet = Replace(JNL_Number_Remove_Text_Alphabet,chr(13),"")
+
+		Set objRegEx = CreateObject("VBScript.RegExp")
+		objRegEx.Global = True   
+		objRegEx.Pattern = "[^0-9]"
+		strSearchString = JNL_Number_Remove_Text_Alphabet
+		strSearchString = objRegEx.Replace(strSearchString, "")
+		
+		JLN_Number = strSearchString
+		objShell.Popup "JLN Number : " & JLN_Number , 5
+	End If
+	
+	If Work_FlagV1 Then
+		devices.MouseMove x , y
+		devices.MouseDblClick x , y , LEFT_MOUSE_BUTTON
+		wait 2
+		JLN_Number = PasteData.GetText
+		wait 2
+		PasteData.SetText ""
+		objShell.Popup "JLN Number : " & JLN_Number , 5
+	End If
+	
+
+End Sub
+
+Sub GET_Fm_Acc_Number
+
+	Set PasteData = CreateObject("Mercury.Clipboard")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objShell = CreateObject("WScript.Shell")
+	
+	xTotal = Window("Bitvise xterm").GetROProperty("width")
+	yTotal = Window("Bitvise xterm").GetROProperty("height")
+	
+	If xTotal < 768 Then
+		xPlus = 70
+	ElseIf xTotal > 768 And xTotal < (768 * 1.5) Then
+		xPlus = 90
+	ElseIf xTotal > (768 * 1.5) And xTotal < (768 * 2) Then
+		xPlus = 110
+	ElseIf xTotal > (768 * 2) And xTotal < (768 * 2.5) Then
+		xPlus = 130
+	ElseIf xTotal > (768 * 2.5) And xTotal < (768 * 3) Then
+		xPlus = 150
+	ElseIf xTotal > (768 * 3) And xTotal < (768 * 4) Then
+		xPlus = 170
+	else
+		msgbox "Screen Resolution Way to Big "
+	End If
+	
+	If Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc:").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc:").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("Fm Acc_IMG_Fm Acc:").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEX_Fm Acc:").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Acc:").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Acc:").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	elseIf Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Arc").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Arc").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Arc").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Acc").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Acc").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("Fm Acc_IMG_TEXT_Fm Acc").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	else
+	Rem v2 ==============================================================================================
+	sTemp_result = Window("Bitvise xterm").GetVisibleText
+	Fm_Acc_start = instr(1,ucase(sTemp_result),"FM ACC")
+	Fm_Acc_Select_Text = mid(sTemp_result,Fm_Acc_start,20)
+	Fm_Acc_Select_Text = Split(Fm_Acc_Select_Text,"|")
+	Fm_Acc_Select_Text_2 = Split(Fm_Acc_Select_Text(0),"ID")
+	msgbox Fm_Acc_Select_Text_2(0)
+	
+	Fm_Acc_Check_Empty = mid(Fm_Acc_Select_Text_2(0),9,1)
+'	Fm_Acc_Check_Empty_2 = mid(Fm_Acc_Select_Text_2(0),1,1)
+	msgbox Fm_Acc_Check_Empty
+	
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Select_Text_2(0),"Fm Acc","")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet,":","")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet," ","")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet,"	","")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet, vbCrLf ,"")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet, chr(10) ,"")
+	Fm_Acc_Remove_Text_Alphabet = Replace(Fm_Acc_Remove_Text_Alphabet, chr(13) ,"")
+	
+	Set objRegEx = CreateObject("VBScript.RegExp")
+	objRegEx.Global = True   
+	objRegEx.Pattern = "[^0-9]"
+	strSearchString = Fm_Acc_Remove_Text_Alphabet
+	strSearchString = objRegEx.Replace(strSearchString, "")
+	
+	Fm_Acc_Number = strSearchString
+	If Fm_Acc_Check_Empty = "" or Fm_Acc_Check_Empty = " " or Fm_Acc_Check_Empty = "	" or Fm_Acc_Check_Empty = vbCrLf or Fm_Acc_Check_Empty = Chr(10) or Fm_Acc_Check_Empty = Chr(13) Then
+		Fm_Acc_Number = ""
+	End If
+	objShell.Popup "Fm Acc Number : "&Fm_Acc_Number , 5
+	Rem v2 ==============================================================================================
+	End If
+	
+	If Work_FlagV1 Then
+		devices.MouseMove x , y
+		devices.MouseDblClick x , y , LEFT_MOUSE_BUTTON
+		wait 2
+		Fm_Acc_Number = PasteData.GetText
+		wait 2
+		PasteData.SetText ""
+		
+		objShell.Popup "Fm Acc Number : "&Fm_Acc_Number , 5
+	End If
+End Sub
+
+Sub GET_To_Acc_Number
+
+	Set PasteData = CreateObject("Mercury.Clipboard")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objShell = CreateObject("WScript.Shell")
+	
+	xTotal = Window("Bitvise xterm").GetROProperty("width")
+	yTotal = Window("Bitvise xterm").GetROProperty("height")
+	
+	If xTotal < 768 Then
+		xPlus = 70
+	ElseIf xTotal > 768 And xTotal < (768 * 1.5) Then
+		xPlus = 90
+	ElseIf xTotal > (768 * 1.5) And xTotal < (768 * 2) Then
+		xPlus = 110
+	ElseIf xTotal > (768 * 2) And xTotal < (768 * 2.5) Then
+		xPlus = 130
+	ElseIf xTotal > (768 * 2.5) And xTotal < (768 * 3) Then
+		xPlus = 150
+	ElseIf xTotal > (768 * 3) And xTotal < (768 * 4) Then
+		xPlus = 170
+	else
+		msgbox "Screen Resolution Way to Big "
+	End If
+
+
+	If Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc:").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc:").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc:").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("To Acc_IMG_To Acc").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("To Acc_IMG_TEXT_To Acc:").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("To Acc_IMG_TEXT_To Acc:").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("To Acc_IMG_TEXT_To Acc:").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	else
+	Rem v2 ==============================================================================================
+	sTemp_result = Window("Bitvise xterm").GetVisibleText
+	To_Acc_start = instr(1,ucase(sTemp_result),"FM ACC")
+	To_Acc_Select_Text = mid(sTemp_result,To_Acc_start,20)
+	To_Acc_Select_Text = Split(To_Acc_Select_Text,"|")
+	To_Acc_Select_Text_2 = Split(To_Acc_Select_Text(0),"ID")
+	msgbox To_Acc_Select_Text_2(0)
+	
+	To_Acc_Check_Empty = mid(To_Acc_Select_Text_2(0),9,1)
+'	To_Acc_Check_Empty_2 = mid(To_Acc_Select_Text_2(0),1,1)
+	msgbox To_Acc_Check_Empty
+	
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Select_Text_2(0),"Fm Acc","")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet,":","")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet," ","")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet,"	","")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet, vbCrLf ,"")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet, chr(10) ,"")
+	To_Acc_Remove_Text_Alphabet = Replace(To_Acc_Remove_Text_Alphabet, chr(13) ,"")
+	
+	Set objRegEx = CreateObject("VBScript.RegExp")
+	objRegEx.Global = True   
+	objRegEx.Pattern = "[^0-9]"
+	strSearchString = To_Acc_Remove_Text_Alphabet
+	strSearchString = objRegEx.Replace(strSearchString, "")
+	
+	To_Acc_Number = strSearchString
+	If To_Acc_Check_Empty = "" or To_Acc_Check_Empty = " " or To_Acc_Check_Empty = "	" or To_Acc_Check_Empty = vbCrLf or To_Acc_Check_Empty = Chr(10) or To_Acc_Check_Empty = Chr(13) Then
+		To_Acc_Number = ""
+	End If
+	objShell.Popup "To Acc Number : "&To_Acc_Number , 5
+	Rem v2 ==============================================================================================
+	End If
+	
+	If Work_FlagV1 Then
+		devices.MouseMove x , y
+		devices.MouseDblClick x , y , LEFT_MOUSE_BUTTON
+		wait 2
+		To_Acc_Number = PasteData.GetText
+		wait 2
+		PasteData.SetText ""
+		
+		objShell.Popup "To Acc Number : "&To_Acc_Number , 5
+	End If
+End Sub
+
+
+
+Sub RUN_SQLPLUS_Bitvice
+	wait 3
+	Window("Bitvise xterm").Type "sqlplus /"
+	wait 2
+	Window("Bitvise xterm").Type micReturn
+end sub
+
+Sub Open_TerminalV2
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objkey = CreateObject("WScript.Shell")
+	
+	If not Window("Bitvise xterm").Exist(2) Then
+		If Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG_2").Exist(2) Then
+			Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG_2").Click
+		ElseIf Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG").Exist(2) Then
+			Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG").Click
+'		ElseIf Dialog("Administrator@192.168.150.133:22").TextObject("New terminal_IMG_TEXT").Exist(2) Then
+'			Dialog("Administrator@192.168.150.133:22").TextObject("New terminal_IMG_TEXT").Click
+		ElseIf Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG_3").Exist(2) Then
+			Dialog("Administrator@192.168.150.133:22").InsightObject("TERMINAL_IMG_3").Click
+		Else 
+			Dialog("Administrator@192.168.150.133:22").Static("Default profile").Click
+			wait 2
+			objkey.SendKeys "{TAB}"
+			wait 1
+			objkey.SendKeys "{TAB}"
+			wait 1
+			objkey.SendKeys "{TAB}"
+			wait 1
+			objkey.SendKeys "{DOWN}"
+			wait 1
+			objkey.SendKeys "{DOWN}"
+			wait 1
+			objkey.SendKeys " "
+			wait 1
+			
+			If not Window("Bitvise xterm").Exist(3) Then
+				Call CaptureImageUFTV2(Dialog("Administrator@192.168.150.133:22"), "Terminal Can Not Open " & UCase(dtCommand)," ", compatibilityMode.Desktop, ReportStatus.Passed)	
+			End If
+		End If
+	End If
+	
+	If not Window("Bitvise xterm").Exist(2) Then
+		xNewTotal = Dialog("Administrator@192.168.150.133:22").GetROProperty("width")
+		yNewTotal = Dialog("Administrator@192.168.150.133:22").GetROProperty("height")
+		
+		x = round(52 * xNewTotal / 646) 
+		y = round(211 * yNewTotal / 600)
+		
+		Dialog("Administrator@192.168.150.133:22").Click x,y
+		wait 3
+	End If
+End Sub
+
+Sub GET_Promo_Code
+	Set PasteData = CreateObject("Mercury.Clipboard")
+	Set devices = CreateObject("Mercury.DeviceReplay")
+	Set objShell = CreateObject("WScript.Shell")
+	
+	xTotal = Window("Bitvise xterm").GetROProperty("width")
+	yTotal = Window("Bitvise xterm").GetROProperty("height")
+	
+	If xTotal < 768 Then
+		xPlus = 40
+	ElseIf xTotal > 768 And xTotal < (768 * 1.5) Then
+		xPlus = 60
+	ElseIf xTotal > (768 * 1.5) And xTotal < (768 * 2) Then
+		xPlus = 80
+	ElseIf xTotal > (768 * 2) And xTotal < (768 * 2.5) Then
+		xPlus = 110
+	ElseIf xTotal > (768 * 2.5) And xTotal < (768 * 3) Then
+		xPlus = 130
+	ElseIf xTotal > (768 * 3) And xTotal < (768 * 4) Then
+		xPlus = 150
+	else
+		msgbox "Screen Resolution Way to Big "
+	End If
+
+	If Window("Bitvise xterm").InsightObject("Promo_IMG_Promo").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("Promo_IMG_Promo").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("Promo_IMG_Promo").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").InsightObject("Promo_IMG_Promo:").Exist(2) Then
+		x = (Window("Bitvise xterm").InsightObject("Promo_IMG_Promo:").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").InsightObject("Promo_IMG_Promo:").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	ElseIf Window("Bitvise xterm").TextObject("PROMO_IMG_TEXT_Promo").Exist(2) Then
+		x = (Window("Bitvise xterm").TextObject("PROMO_IMG_TEXT_Promo").getRoProperty("abs_x") + xPlus)
+		y = (Window("Bitvise xterm").TextObject("PROMO_IMG_TEXT_Promo").getRoProperty("abs_y") + 10)
+		Work_FlagV1 = True
+	else
+	Rem v2 ==============================================================================================
+	sTemp_result = Window("Bitvise xterm").GetVisibleText
+	Promo_Code_start = instr(1,ucase(sTemp_result),"PROMO")
+	Promo_Code_Select_Text = mid(sTemp_result,Promo_Code_start,15)
+	Promo_Code_Select_Text = Split(Promo_Code_Select_Text,"|")
+	Promo_Code_Select_Text_2 = Split(Promo_Code_Select_Text(0),"ID")
+	msgbox Promo_Code_Select_Text_2(0)
+	
+	Promo_Code_Check_Empty = mid(Promo_Code_Select_Text_2(0),9,1)
+'	Promo_Code_Check_Empty_2 = mid(Promo_Code_Select_Text_2(0),1,1)
+	msgbox Promo_Code_Check_Empty
+	
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Select_Text_2(0),"promo","")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet,":","")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet," ","")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet,"	","")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet, vbCrLf ,"")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet, chr(10) ,"")
+	Promo_Code_Remove_Text_Alphabet = Replace(Promo_Code_Remove_Text_Alphabet, chr(13) ,"")
+	
+	Set objRegEx = CreateObject("VBScript.RegExp")
+	objRegEx.Global = True   
+	objRegEx.Pattern = "[^0-9]"
+	strSearchString = Promo_Code_Remove_Text_Alphabet
+	strSearchString = objRegEx.Replace(strSearchString, "")
+	
+	Promo_Code_Text = strSearchString
+	If Promo_Code_Check_Empty = "" or Promo_Code_Check_Empty = " " or Promo_Code_Check_Empty = "	" or Promo_Code_Check_Empty = vbCrLf or Promo_Code_Check_Empty = Chr(10) or Promo_Code_Check_Empty = Chr(13) Then
+		Promo_Code_Text = ""
+	End If
+	objShell.Popup "Promo Code Text : "&Promo_Code_Text , 5
+	Rem v2 ==============================================================================================
+	End If
+	
+	If Work_FlagV1 Then
+		devices.MouseMove x , y
+		devices.MouseDblClick x , y , LEFT_MOUSE_BUTTON
+		wait 2
+		Promo_Code_Text = PasteData.GetText
+		wait 2
+		PasteData.SetText ""
+		
+		objShell.Popup "Promo Code Text : "&Promo_Code_Text , 5
+	End If
+End Sub
+
+Sub Get_Fm_Acc_Or_To_Acc
+	Set objShell = CreateObject("WScript.Shell")
+	
+	Call GET_Fm_Acc_Number
+	Call GET_To_Acc_Number
+	
+	If len(Fm_Acc_Number) >= 17 and Fm_Acc_Number <> "00000000000000000" Then
+		Fm_Acc_Number_Or_To_Acc_Number = Fm_Acc_Number
+		
+	ElseIf 1 < len(Fm_Acc_Number) and len(Fm_Acc_Number) < 17 and Fm_Acc_Number <> "0000000000" Then
+		If To_Acc_Number <> "" and To_Acc_Number <> " " and To_Acc_Number <> "0" Then
+			Fm_Acc_Number_Or_To_Acc_Number = To_Acc_Number
+		else
+			Fm_Acc_Number_Or_To_Acc_Number = Fm_Acc_Number
+		End If
+		
+	ElseIf Fm_Acc_Number = "00000000000000000" or Fm_Acc_Number = "0000000000" Then
+		If To_Acc_Number <> "" and To_Acc_Number <> " " and To_Acc_Number <> "0" Then
+			Fm_Acc_Number_Or_To_Acc_Number = To_Acc_Number
+		else
+			Call ReRunSimATM()
+		End If
+		
+	ElseIf len(Fm_Acc_Number) < 2 Then
+		If To_Acc_Number <> "" and To_Acc_Number <> "0" Then
+			Fm_Acc_Number_Or_To_Acc_Number = To_Acc_Number
+		else
+			Call ReRunSimATM()
+		End If
+	else
+		msgbox "Error No Acc or To Acc Number"
+	End If
+	objShell.Popup "To Acc Number/Fm Acc Number : "&Fm_Acc_Number_Or_To_Acc_Number , 5
+End Sub
+
+Sub ReRunSimATM
+	Call Close_Terminal_Bitvise()
+	Call Open_Terminal_Bitvise()
+	Call RUN_Command_Bitvise("SIMATM")
+	Call RUN_Command_Bitvise("SHOWJNL")
+	Call Get_Fm_Acc_Or_To_Acc()
+End Sub

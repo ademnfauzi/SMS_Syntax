@@ -1,0 +1,66 @@
+﻿Sub DA_Login_Bitvise(varLogType_Login)
+	Dim appLog, dtIPAddress, dtPort, dtUsername, dtPassword, dt_TCID
+	
+	dtIPAddress			= DataTable.Value("LOG_" & UCase(varLogType_Login) & "_IP_ADDRESS", "LOG")
+	dtPort				= DataTable.Value("LOG_" & UCase(varLogType_Login) & "_PORT", "LOG")
+	dtUsername			= DataTable.Value("LOG_" & UCase(varLogType_Login) & "_USER", "LOG")
+	dtPassword			= DataTable.Value("LOG_" & UCase(varLogType_Login) & "_PASSWORD", "LOG")
+	
+		If Not Dialog("Bitvise SSH Client 8.46").Exist(10) Then
+			appLog		= "C:\Program Files (x86)\Bitvise SSH Client\BvSsh.exe"
+			SystemUtil.Run appLog
+			If Not Dialog("Bitvise SSH Client 8.46").Exist(30) Then
+				Call CaptureImageUFTV2(Desktop, "Verifikasi LOG - SSH Window Not Open", " ", compatibilityMode.Desktop, ReportStatus.Failed)
+			End If
+		End If
+		
+		wait 3
+		If Dialog("Bitvise SSH Client 8.46").Exist(10) Then
+		Set objkey = CreateObject("Wscript.Shell")
+'			Dialog("Bitvise SSH Client 8.46").WinTab("Closing and minimization").Select "Login"
+			REM ==== USING OBJKEY
+			Dialog("Bitvise SSH Client 8.46").Static("Default profile").Click
+			wait 1
+			For Iterator = 1 To 4 Step 1
+			objkey.SendKeys "{TAB}"
+			wait 1
+			Next
+			wait 2
+			For Iterator = 1 To 10 Step 1
+			objkey.SendKeys "{LEFT 10}"
+			wait 1			
+			Next
+			
+			wait 2
+			Dialog("Bitvise SSH Client 8.46").WinEdit("Host").Set dtIPAddress
+			Dialog("Bitvise SSH Client 8.46").WinEdit("Port").Set dtPort
+			Dialog("Bitvise SSH Client 8.46").WinEdit("Username").Set dtUsername
+			Dialog("Bitvise SSH Client 8.46").WinButton("Log in").Click
+			wait 2
+			If Dialog("Host Key Verification").WinButton("Accept for This Session").Exist(2) Then
+				Dialog("Host Key Verification").WinButton("Accept for This Session").Click
+			End If
+			wait 1
+			Dialog("User Authentication").WinEdit("Password").Set dtPassword
+			Dialog("User Authentication").WinButton("OK").Click
+			wait 1
+		End If
+End Sub
+
+Sub DA_Logout_Bitvise()
+	Set objkey = CreateObject("WScript.Shell")
+	If Dialog("Session Active").Exist(5) Then
+		Dialog("Session Active").WinButton("Yes").Click
+	End If
+	Dialog("Administrator@192.168.150.133:22").WinButton("Log out").Click
+	wait 5
+	Dialog("Bitvise SSH Client 8.46").Close
+	If Dialog("Bitvise SSH Client 8.46").Exist(2) Then
+		Dialog("Bitvise SSH Client 8.46").Static("Default profile").Click
+		objkey.SendKeys "%{F4}"
+	End If
+	wait 5
+	
+End Sub
+
+

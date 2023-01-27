@@ -1,0 +1,1 @@
+﻿var __testDataSource={items:[{dataFilePath:'Default.xlsx',dataFileFormat:'excel',dataFileFolder:'D:\\2021 - BNI API\\03. API - Scripts\\SAPI0001 Get Token P2P Lending\\Report',namePairs:[]}]};

@@ -1,0 +1,1 @@
+﻿var __testDataSource={items:[{dataFilePath:'Default.xlsx',dataFileFormat:'excel',dataFileFolder:'D:\\TestAPI\\03. API - Scripts\\testing api\\Res1',namePairs:[]}]};
